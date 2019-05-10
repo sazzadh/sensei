@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Gulp File
  *
@@ -6,97 +7,91 @@
  * 2) Install all the modules from package.json:
  * $ npm install
  *
- * 3) Run gulp to mifiy javascript and css using the 'gulp' command.
+ * 3) Run gulp to minify javascript and css using the 'gulp' command.
  */
 
-var gulp            = require( 'gulp' );
-var rename          = require( 'gulp-rename' );
-var uglify          = require( 'gulp-uglify' );
-var minifyCSS       = require( 'gulp-minify-css' );
+var babel           = require( 'gulp-babel' );
+var checktextdomain = require( 'gulp-checktextdomain' );
 var chmod           = require( 'gulp-chmod' );
 var del             = require( 'del' );
+var gulp            = require( 'gulp' );
+var minifyCSS       = require( 'gulp-minify-css' );
+var phpunit         = require( 'gulp-phpunit' );
+var rename          = require( 'gulp-rename' );
 var sass            = require( 'gulp-sass' );
-var wpPot           = require( 'gulp-wp-pot' );
 var sort            = require( 'gulp-sort' );
-var checktextdomain = require( 'gulp-checktextdomain' );
-var babel           = require( 'gulp-babel' );
+var uglify          = require( 'gulp-uglify' );
+var wpPot           = require( 'gulp-wp-pot' );
+var zip             = require( 'gulp-zip' );
 
 var paths = {
-	scripts: ['assets/js/*.js' ],
-	adminScripts: ['assets/js/admin/*.js'],
-	css: ['assets/css/*.scss'],
-    frontedCss: ['assets/css/frontend/*.scss']
-};
-
-var babelOptions = {
-	'presets': [
-		[ 'env', {
-			'targets': {
-				'browsers': [
-					"last 2 versions",
-					"Safari >= 9",
-					"iOS >= 9",
-					"not ie <= 10"
-				]
-			}
-		} ],
-		'stage-3'
+	scripts: [ 'assets/js/**/*.js', '!assets/js/**/*.min.js' ],
+	css: [ 'assets/css/**/*.scss' ],
+	select2: [
+		'node_modules/select2/dist/css/select2.min.css',
+		'node_modules/select2/dist/js/select2.full.js',
+		'node_modules/select2/dist/js/select2.full.min.js'
 	],
+	packageContents: [
+		'assets/**/*',
+		'changelog.txt',
+		'CONTRIBUTING.md',
+		'LICENSE',
+		'dummy_data.xml',
+		'includes/**/*',
+		'lang/**/*',
+		'readme.txt',
+		'templates/**/*',
+		'uninstall.php',
+		'widgets/**/*',
+		'sensei-lms.php',
+		'wpml-config.xml',
+	],
+	packageDir: 'build/sensei-lms',
+	packageZip: 'build/sensei-lms.zip'
 };
 
-gulp.task( 'clean', function( cb ) {
-	return del( ['assets/js/*.min.js','assets/js/admin/*.min.js', 'assets/css/*.min.css'], cb );
-});
+gulp.task( 'clean', gulp.series( function( cb ) {
+	return del( [
+		'assets/js/**/*.min.js',
+		'assets/js/**/*.min.js',
+		'assets/css/**/*.min.css',
+		'assets/vendor/select2/**',
+		'build'
+	], cb );
+} ) );
 
-gulp.task( 'default', [ 'CSS','FrontendCSS','JS','adminJS' ] );
-
-gulp.task( 'CSS', ['clean'], function() {
+gulp.task( 'CSS', gulp.series( function() {
 	return gulp.src( paths.css )
-        .pipe( sass().on('error', sass.logError))
-	.pipe( minifyCSS({ keepBreaks: false }) )
+		.pipe( sass().on( 'error', sass.logError ) )
+		.pipe( minifyCSS( { keepBreaks: false } ) )
 		.pipe( gulp.dest( 'assets/css' ) );
-});
+} ) );
 
-gulp.task( 'FrontendCSS', function() {
-    return gulp.src( paths.frontedCss )
-        .pipe( sass().on('error', sass.logError))
-        .pipe( gulp.dest( './assets/css/frontend' ) );
-});
-
-gulp.task( 'JS', ['clean'], function() {
+gulp.task( 'JS', gulp.series( function() {
 	return gulp.src( paths.scripts )
-		.pipe( babel( babelOptions ) )
+		.pipe( babel() )
 		// This will minify and rename to *.min.js
 		.pipe( uglify() )
-		.pipe( rename({ extname: '.min.js' }) )
+		.pipe( rename( { extname: '.min.js' } ) )
 		.pipe( chmod( 0o644 ) )
-		.pipe( gulp.dest( 'assets/js' ));
-});
+		.pipe( gulp.dest( 'assets/js' ) );
+} ) );
 
-gulp.task( 'adminJS', ['clean'], function() {
-	return gulp.src( paths.adminScripts )
-		.pipe( babel( babelOptions ) )
-		// This will minify and rename to *.min.js
-		.pipe( uglify() )
-		.pipe( rename({ extname: '.min.js' }) )
-		.pipe( chmod( 0o644 ) )
-		.pipe( gulp.dest( 'assets/js/admin' ) );
-});
-
-gulp.task( 'pot', function() {
-	return gulp.src( [ '**/**.php', '!node_modules/**'] )
+gulp.task( 'pot', gulp.series( function() {
+	return gulp.src( [ '**/**.php', '!node_modules/**', '!build/**' ] )
 		.pipe( sort() )
-		.pipe( wpPot({
-			domain: 'woothemes-sensei',
-			bugReport: 'https://www.transifex.com/woothemes/sensei-by-woothemes/'
-		}) )
-		.pipe( gulp.dest( 'lang/woothemes-sensei.pot' ) );
-});
+		.pipe( wpPot( {
+			domain: 'sensei-lms',
+			bugReport: 'https://translate.wordpress.org/projects/wp-plugins/sensei-lms/'
+		} ) )
+		.pipe( gulp.dest( 'lang/sensei-lms.pot' ) );
+} ) );
 
-gulp.task ( 'textdomain' , function() {
-	return gulp.src( [ '**/*.php', '!node_modules/**'] )
-		.pipe( checktextdomain({
-			text_domain: 'woothemes-sensei',
+gulp.task( 'textdomain', gulp.series( function() {
+	return gulp.src( [ '**/*.php', '!node_modules/**', '!build/**' ] )
+		.pipe( checktextdomain( {
+			text_domain: 'sensei-lms',
 			keywords: [
 				'__:1,2d',
 				'_e:1,2d',
@@ -113,5 +108,34 @@ gulp.task ( 'textdomain' , function() {
 				'_n_noop:1,2,3d',
 				'_nx_noop:1,2,3c,4d'
 			]
-		}));
-});
+		} ) );
+} ) );
+
+gulp.task( 'vendor', function() {
+	return gulp.src( paths.select2 )
+		.pipe( gulp.dest( 'assets/vendor/select2' ) );
+} );
+
+gulp.task( 'test', function() {
+	return gulp.src( 'phpunit.xml' )
+		.pipe( phpunit() );
+} );
+
+gulp.task( 'build', gulp.series( 'test', 'clean', 'CSS', 'JS', 'vendor' ) );
+gulp.task( 'build-unsafe', gulp.series( 'clean', 'CSS', 'JS', 'vendor' ) );
+
+gulp.task( 'copy-package', function() {
+	return gulp.src( paths.packageContents, { base: '.' } )
+		.pipe( gulp.dest( paths.packageDir ) );
+} );
+
+gulp.task( 'zip-package', function() {
+	return gulp.src( paths.packageDir + '/**/*', { base: paths.packageDir + '/..' } )
+		.pipe( zip( paths.packageZip ) )
+		.pipe( gulp.dest( '.' ) );
+} );
+
+gulp.task( 'package', gulp.series( 'build', 'copy-package', 'zip-package' ) );
+gulp.task( 'package-unsafe', gulp.series( 'build-unsafe', 'copy-package', 'zip-package' ) );
+
+gulp.task( 'default', gulp.series( 'build' ) );

@@ -1,12 +1,3 @@
-/*
-Plugin Name: Sensei
-Plugin URI: http://woothemes.com/
-Description: Sensei by WooThemes is the best Learning Management System ever!
-Version: 1.4.3
-Author: WooThemes
-Author URI: http://woothemes.com/
-License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-*/
 /*-----------------------------------------------------------------------------------*/
 /* Sensei frontend  Stylesheet Sensei.css                                            */
 /*-----------------------------------------------------------------------------------*/
@@ -25,6 +16,11 @@ License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2
  * Mixins
  */
 @import "../mixins";
+
+/**
+ * Fonts
+ */
+$fontawesome: FontAwesomeSensei, FontAwesome;
 
 /**
  * Base
@@ -68,7 +64,9 @@ a.sensei-certificate-link {
 }
 
 /* Courses */
-#main .course, #main .course-container {
+.course,
+.course-container,
+.course-container .course {
   @include clearfix();
   position: relative;
   margin: 0 0 1.618em;
@@ -161,7 +159,7 @@ a.sensei-certificate-link {
 }
 
 // Single Course
-.single-course {
+.course {
   .course-meta {
     margin-bottom: 1.618em;
     @include clearfix;
@@ -172,7 +170,11 @@ a.sensei-certificate-link {
     }
   }
   .course-video {
+    margin-top: 1em;
     margin-bottom: 1.618em;
+  }
+  .modules-title {
+    margin-top: 1em;
   }
 }
 
@@ -220,6 +222,9 @@ a.sensei-certificate-link {
   .lesson-meta  {
     margin: 0 0 1.618em;
   }
+  header h1 {
+    margin-bottom: 0.5em;
+  }
 }
 
 .sensei-breadcrumb  {
@@ -246,6 +251,7 @@ a.sensei-certificate-link {
   form  {
     ol#sensei-quiz-list  {
       margin: 0 0 1.618em 0;
+      list-style-position: outside;
       li  {
         position: relative;
         margin: 0 0 1.618em;
@@ -298,6 +304,7 @@ a.sensei-certificate-link {
               margin: 0 .382em 0 0;
             }
             label  {
+              display: inline;
               vertical-align: middle;
             }
           }
@@ -361,6 +368,52 @@ a.sensei-certificate-link {
   .lesson_button_form {
     display: inline;
   }
+}
+
+/* Preview indicators */
+.lesson, .module-lessons {
+	.preview-label {
+		color: rgba(255,255,255,1);
+		background: #63a95f;
+		padding:.2em 1em;
+		-webkit-border-radius:5px;
+		border-radius:5px;
+		-moz-background-clip:padding;
+		-webkit-background-clip:padding-box;
+		background-clip:padding-box;
+		clear: both;
+		display: inline-block;
+		position: relative;
+		&:before {
+			font-family: $fontawesome;
+			display: inline-block;
+			margin-right: 0.168em;
+			line-height: 1em;
+			width: 1em;
+			content: '\f13e';
+		}
+	}
+
+	header.lesson-title {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		margin-bottom: 0.5em;
+
+		h1, h2 {
+			display: inline-block;
+			margin: 0;
+		}
+
+		.preview-label {
+			margin-left: 10px;
+			font-size: 1.1em;
+		}
+
+		.lesson-meta {
+			width: 100%;
+		}
+	}
 }
 
 div.course-container div.course { display: block; padding: 5px; }
@@ -551,6 +604,9 @@ section.entry span.course-price { padding-left: 10px; }
     h2 {
       margin-top: 0;
     }
+  }
+  .my-messages-link-container {
+    clear: both;
   }
   .fix {
     clear: both;
